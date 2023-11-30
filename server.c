@@ -8,7 +8,7 @@
 
 struct wl_display* display;
 
-void handle_interrupt() {
+void on_interrupt() {
 	if (!display) return;
 
 	printf("\nSIGINT caught, terminating display...\n");
@@ -16,7 +16,7 @@ void handle_interrupt() {
 }
 
 int main() {
-	signal(SIGINT, handle_interrupt);
+	signal(SIGINT, on_interrupt);
 
 	// Creating display
 	display = wl_display_create();
@@ -33,7 +33,7 @@ int main() {
 	}
 
 	// Creating a global
-	struct output* output = wl_output_new(display);
+	struct output* output = output_new(display);
 	//
 
 	printf("Running Wayland display on socket %s...\n", socket);

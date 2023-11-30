@@ -19,6 +19,6 @@ struct output {
 	const char* model;
 };
 
-struct output* wl_output_new(struct wl_display* display);
+struct output* output_new(struct wl_display* display);
 
 #endif

@@ -5,20 +5,20 @@
 
 #include "output.h"
 
-static void wl_output_handle_resource_destroy(struct wl_resource* resource) {
+static void on_output_resource_destroy(struct wl_resource* resource) {
 	// TODO: clean up resource (??)
 	printf("uhhh client destroyed a resource wtf do i do\n");
 }
 
-static void wl_output_handle_release(struct wl_client* client, struct wl_resource* resource) {
+static void on_output_release(struct wl_client* client, struct wl_resource* resource) {
 	wl_resource_destroy(resource);
 }
 
-static const struct wl_output_interface wl_output_implementation = {
-	.release = wl_output_handle_release
+static const struct wl_output_interface output_implementation = {
+	.release = on_output_release
 };
 
-static void wl_output_handle_bind(struct wl_client* client, void* data, uint32_t version, uint32_t id) {
+static void on_output_bind(struct wl_client* client, void* data, uint32_t version, uint32_t id) {
 	printf("Bind request for output received!\n");
 
 	struct output* output = data;
@@ -31,22 +31,21 @@ static void wl_output_handle_bind(struct wl_client* client, void* data, uint32_t
 		return;
 	}
 
-	wl_resource_set_implementation(resource, &wl_output_implementation, data, wl_output_handle_resource_destroy);
+	wl_resource_set_implementation(resource, &output_implementation, data, wl_output_handle_resource_destroy);
 
 	output->resource = resource;
 
 	OUTPUT_SEND_GEOMETRY(output);
-	//wl_output_send_geometry(resource, output->x, output->y, output->physical_w, output->physical_h, output->subpixel, output->make, output->model, output->transform);
 }
 
-struct output* wl_output_new(struct wl_display* display) {
+struct output* output_new(struct wl_display* display) {
 	struct output* output = malloc(sizeof(*output));
 	if (!output) {
 		fprintf(stderr, "ERROR: Failed to allocate memory for new output.\n");
 		goto error;
 	}
 
-	output->global = wl_global_create(display, &wl_output_interface, wl_output_interface.version, output, wl_output_handle_bind);
+	output->global = wl_global_create(display, &wl_output_interface, wl_output_interface.version, output, on_output_bind);
 
 	if (!output->global) {
 		fprintf(stderr, "ERROR: Failed to create global for new output.\n");
