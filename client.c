@@ -3,8 +3,23 @@
 #include <string.h>
 #include <wayland-client.h>
 
-void registry_handle_global(void* data, struct wl_registry* registry, uint32_t name, char* interface, uint32_t version) {
+static const struct wl_output_listener output_listener = {
+	.geometry = wl_output_handle_geometry;
+	.mode = wl_output_handle_mode;
+	.done = wl_output_handle_done;
+	.scale = wl_output_handle_scale;
+	.name = wl_output_handle_name;
+	.description = wl_output_handle_description;
+}
+
+void registry_handle_global(void* data, struct wl_registry* registry, uint32_t name, const char* interface, uint32_t version) {
 	printf("%u - %s\n", name, interface);
+
+	if (strcmp(interface, wl_output_interface.name) == 0) {
+		printf("Sending bind request on output!\n");
+		struct wl_output* output = wl_registry_bind(registry, name, &wl_output_interface, version);
+		wl_output_bind(output, )
+	}
 }
 
 void registry_handle_global_remove(void* data, struct wl_registry* registry, uint32_t name) {

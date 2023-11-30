@@ -1,19 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <signal.h>
-
-#ifndef WAYLAND_SERVER_H_INCLUDED
-#define WAYLAND_SERVER_H_INCLUDED
 #include <wayland-server.h>
-#endif
 
 #include "output.h"
 
 struct wl_display* display;
-
-struct state {
-	char* test;
-};
 
 void handle_interrupt() {
 	if (!display) return;
@@ -40,8 +33,7 @@ int main() {
 	}
 
 	// Creating a global
-	struct state output_state = { "hi" };
-	wl_global_create(display, &wl_output_interface, wl_output_interface.version, (void*)&output_state, wl_output_handle_bind);
+	struct output* output = wl_output_new(display);
 	//
 
 	printf("Running Wayland display on socket %s...\n", socket);
@@ -49,6 +41,9 @@ int main() {
 
 	wl_display_destroy(display);
 	printf("Display destroyed. Done :3\n");
+	if (output) {
+		free(output);
+	}
 
 	return 0;
 }
