@@ -6,7 +6,6 @@
 
 #define OUTPUT_SEND_GEOMETRY(OUT) wl_output_send_geometry(OUT->resource, OUT->x, OUT->y, OUT->physical_w, OUT->physical_h, OUT->subpixel, OUT->make, OUT->model, OUT->transform)
 
-
 struct output {
 	struct wl_resource* resource;
 	struct wl_global* global;
@@ -19,6 +18,7 @@ struct output {
 	const char* model;
 };
 
+/* creates a new output global and returns a pointer to it's output struct */
 struct output* output_new(struct wl_display* display);
 
 #endif

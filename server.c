@@ -4,9 +4,11 @@
 #include <signal.h>
 #include <wayland-server.h>
 
-#include "output.h"
+#include "compositor.h"
+#include "shm.h"
 
 struct wl_display* display;
+struct shm* shm;
 
 void on_interrupt() {
 	if (!display) return;
@@ -32,8 +34,19 @@ int main() {
 		return 1;
 	}
 
-	// Creating a global
-	struct output* output = output_new(display);
+	// Shared Memory
+	wl_display_init_shm(display);
+	for (int i = 0; i < shm_get_formats_size(); ++i) {
+		wl_display_add_shm_format(display, shm_get_formats()[i]);
+	}
+
+	// Creating globals
+	if (compositor_new(display)) {
+		goto error;
+	}
+//	if (!(shm = shm_new(display))) {
+//		goto error;
+//	}
 	//
 
 	printf("Running Wayland display on socket %s...\n", socket);
@@ -41,9 +54,11 @@ int main() {
 
 	wl_display_destroy(display);
 	printf("Display destroyed. Done :3\n");
-	if (output) {
-		free(output);
-	}
 
 	return 0;
+
+error:
+	wl_display_destroy(display);
+	printf("An error occured. Display destroyed :(\n");
+	return 1;
 }
