@@ -5,10 +5,14 @@
 #include <wayland-server.h>
 
 #include "compositor.h"
-#include "shm.h"
 
 struct wl_display* display;
-struct shm* shm;
+
+#define SHM_FORMATS_SIZE (sizeof(shm_formats)/sizeof(shm_formats[0]))
+static const int32_t shm_formats[] = {
+	WL_SHM_FORMAT_ARGB8888,
+	WL_SHM_FORMAT_XRGB8888
+};
 
 void on_interrupt() {
 	if (!display) return;
@@ -36,17 +40,14 @@ int main() {
 
 	// Shared Memory
 	wl_display_init_shm(display);
-	for (int i = 0; i < shm_get_formats_size(); ++i) {
-		wl_display_add_shm_format(display, shm_get_formats()[i]);
+	for (int i = 0; i < (int)SHM_FORMATS_SIZE; ++i) {
+		wl_display_add_shm_format(display, shm_formats[i]);
 	}
 
 	// Creating globals
 	if (compositor_new(display)) {
 		goto error;
 	}
-//	if (!(shm = shm_new(display))) {
-//		goto error;
-//	}
 	//
 
 	printf("Running Wayland display on socket %s...\n", socket);
