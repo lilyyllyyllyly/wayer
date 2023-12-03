@@ -5,6 +5,7 @@
 #include "surface.h"
 
 static struct wl_signal surface_commit;
+static struct wl_signal buffer_destroy;
 
 void surface_commit_initialize() {
 	wl_signal_init(&surface_commit);
@@ -12,6 +13,14 @@ void surface_commit_initialize() {
 
 void surface_commit_add_listener(struct wl_listener* listener) {
 	wl_signal_add(&surface_commit, listener);
+}
+
+void buffer_destroy_initialize() {
+	wl_signal_init(&buffer_destroy);
+}
+
+void buffer_destroy_add_listener(struct wl_listener* listener) {
+	wl_signal_add(&buffer_destroy, listener);
 }
 
 // I hate the fact i made 2 different functions for this, but im lazy lol
@@ -28,6 +37,8 @@ static void on_buffer_destroy(struct wl_listener* listener, void* data) {
 	struct surface* surface;
 	surface = wl_container_of(listener, surface, buffer_destroy_listener);
 	surface->buffer = NULL;
+
+	wl_signal_emit(&buffer_destroy, NULL);
 }
 //
 

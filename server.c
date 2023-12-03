@@ -38,28 +38,25 @@ void draw_buffer(int32_t* pixels, int32_t width, int32_t height, int32_t stride,
 		return;
 	}
 
-	char* filename = "./cat.ppm";
-	FILE* f = fopen(filename, "w");
-	if (!f) {
-		fprintf(stderr, "ERROR: Failed to create file for ppm buffer.\n");
-		return;
-	}
+	// Scale window
+	SetWindowSize(width, height);
 
-	// Filling file with pixel data in ppm format
-	fprintf(f, "%s\n%d %d\n%d\n", PPM_MAGIC, width, height, PPM_MAX_COLOR); // Header
+	// Generate image from pixel data (in a very stupid way)
+	Image img = GenImageColor(width, height, WHITE);
 	for (int i = 0; i < (int)(stride*height/sizeof(int32_t)); ++i) {
-		fprintf(f, " %d %d %d ", (pixels[i] >> (8*3)) & 0xFF, 
-					 (pixels[i] >> (8*2)) & 0xFF,
-					 (pixels[i] >> (8*1)) & 0xFF);
-		if ((i+1) % width == 0) fputc('\n', f);
+		Color color = { (pixels[i] >> (8*2)) & 0xFF,
+				(pixels[i] >> (8*1)) & 0xFF,
+				(pixels[i] >> (8*0)) & 0xFF, 0xFF };
+		ImageDrawPixel(&img, i%width, i/width, color);
 	}
-	
-	fclose(f);
 
-	// Drawing ppm buffer
-	Image img = LoadImage(filename);
-	Texture2D tex = LoadTextureFromImage(img);
+	// Generate and draw texture
+	Texture tex = LoadTextureFromImage(img);
+	UnloadImage(img);
+
+	BeginDrawing();
 	DrawTexture(tex, 0, 0, WHITE);
+	EndDrawing();
 }
 
 void on_surface_commit(struct wl_listener* listener, void* data) {
@@ -80,8 +77,19 @@ void on_surface_commit(struct wl_listener* listener, void* data) {
 	wl_shm_buffer_end_access(buffer);
 }
 
+void on_buffer_destroy(struct wl_listener* listener, void* data) {
+	// Clear window (this whole signal makes no sense i know)
+	BeginDrawing();
+	ClearBackground(BLACK);
+	EndDrawing();
+}
+
 struct wl_listener surface_commit_listener = {
 	.notify = on_surface_commit,
+};
+
+struct wl_listener buffer_destroy_listener = {
+	.notify = on_buffer_destroy,
 };
 
 int main() {
@@ -112,9 +120,11 @@ int main() {
 	InitWindow(RL_DEFAULT_WIDTH, RL_DEFAULT_HEIGHT, RL_TITLE);
 	//
 
-	// Listen to commit from surfaces (to draw buffers)
+	// Listen to commit and buffer destroy from surfaces (to draw buffers)
 	surface_commit_initialize();
-	surface_commit_add_listener(&surface_commit_listener);	
+	surface_commit_add_listener(&surface_commit_listener);
+	buffer_destroy_initialize();
+	buffer_destroy_add_listener(&buffer_destroy_listener);
 
 	// Creating Compositor
 	if (compositor_new(display)) {

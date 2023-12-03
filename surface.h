@@ -6,6 +6,9 @@
 void surface_commit_initialize();
 void surface_commit_add_listener(struct wl_listener* listener);
 
+void buffer_destroy_initialize();
+void buffer_destroy_add_listener(struct wl_listener* listener);
+
 struct surface {
 	struct wl_resource* resource;
 
