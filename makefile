@@ -9,10 +9,10 @@ OUTPUT=server
 SOURCES=server.c compositor.c surface.c
 
 final:
-	$(COMP) $(OPTIONS) -lwayland-server $(SOURCES) -o $(OUTPUT)
+	$(COMP) $(OPTIONS) -lwayland-server -lraylib $(SOURCES) -o $(OUTPUT)
 
 debug:
-	$(COMP) $(OPTIONS) $(DEBUG) -lwayland-server $(SOURCES) -o $(OUTPUT)
+	$(COMP) $(OPTIONS) $(DEBUG) -lwayland-server -lraylib $(SOURCES) -o $(OUTPUT)
 
 #xdg:
 #	wayland-scanner private-code $(XDG_SHELL_PATH) xdg-shell-protocol.c
