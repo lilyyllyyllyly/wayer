@@ -3,11 +3,18 @@
 #include <stdint.h>
 #include <wayland-server.h>
 
+#include "surface.h"
+
 static struct wl_global* global;
 
 static void on_compositor_create_surface(struct wl_client* client, struct wl_resource* resource, uint32_t id) {
 	printf("Got request to create surface!\n");
-	// TODO
+
+	struct surface* surface = surface_new(client, wl_resource_get_version(resource), id);
+	if (!surface->resource) {
+		wl_resource_post_no_memory(resource);
+		return;
+	}
 }
 
 static void on_compositor_create_region(struct wl_client* client, struct wl_resource* resource, uint32_t id) {

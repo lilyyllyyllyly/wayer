@@ -5,8 +5,10 @@
 #include <wayland-server.h>
 
 #include "compositor.h"
+#include "surface.h"
 
 struct wl_display* display;
+struct wl_global* wm_base_global;
 
 #define SHM_FORMATS_SIZE (sizeof(shm_formats)/sizeof(shm_formats[0]))
 static const int32_t shm_formats[] = {
@@ -20,6 +22,18 @@ void on_interrupt() {
 	printf("\nSIGINT caught, terminating display...\n");
 	wl_display_terminate(display);
 }
+
+void on_surface_commit(struct wl_listener* listener, void* data) {
+	printf("server: listened to surface commit\n");
+	struct surface* surface = data;
+	struct wl_shm_buffer* buffer = wl_shm_buffer_get(surface->buffer);
+	printf("width: %d\n", wl_shm_buffer_get_width(buffer));
+	printf("height: %d\n", wl_shm_buffer_get_height(buffer));
+}
+
+struct wl_listener surface_commit_listener = {
+	.notify = on_surface_commit,
+};
 
 int main() {
 	signal(SIGINT, on_interrupt);
@@ -44,7 +58,10 @@ int main() {
 		wl_display_add_shm_format(display, shm_formats[i]);
 	}
 
-	// Creating globals
+	surface_commit_initialize();
+	surface_commit_add_listener(&surface_commit_listener); // Listen to commit from surfaces
+	
+	// Creating Compositor
 	if (compositor_new(display)) {
 		goto error;
 	}
